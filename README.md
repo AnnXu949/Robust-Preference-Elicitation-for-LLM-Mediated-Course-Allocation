@@ -1,2 +1,25 @@
-# Robust-Preference-Elicitation-for-LLM-Mediated-Course-Allocation
-The coding and information related to course COMPSCI 535 Game thoery algorithm final project
+# Robust Preference Elicitation for LLM-Mediated Course Allocation
+COMPSCI 535 (Game Theory and Algorithms) final project.
+
+How does course allocation change when students describe their preferences in natural language and a language model interprets their reports? The main experiments compare strict and tiered preference proxies under Random Serial Dictatorship (RSD). They measure allocation quality against simulated ground truth and test whether students can improve their outcomes by changing their reports. Approximate Competitive Equilibrium from Equal Incomes (A-CEEI) and Maximum Nash Welfare (MNW) extend the comparison to mechanisms that use cardinal scores.
+Notebook guide
+Notebook	What it does
+[Dataset construction](01_construct_128_student_fixed_tolerance_dataset.ipynb)	Generates 128 synthetic students and a 12-course catalog. Writes natural-language reports, hidden student preferences, and matched-size bundle comparisons with balanced A, B, and INDIFFERENT labels. A common utility-gap tolerance defines the indifference labels.
+[Strict RSD benchmark](notebooks/Strict_RSD_LLM_robustness.ipynb)	Fits a pairwise model on strict A/B labels and compares proxy and oracle RSD under the same random priority orders. Reports Pareto violations, priority-blocking bundles, allocation agreement, and true-rank loss.
+[Weak RSD with Pareto completion](notebooks/Weak_RSD_Pareto_Completion.ipynb)	Fits a strict pairwise model, then calibrates indifference thresholds on separate validation markets. A mixed-integer program improves proxy tiers without making any student worse off under the proxy weak order. Final evaluation uses held-out students' hidden strict rankings.
+[Alternative weak RSD specification](notebooks/RSD_weak_preference_robustness.ipynb)	Uses A/B/INDIFFERENT labels to fit an ordinal bundle-score proxy. Calibrates thresholds separately for Pareto violations and priority blocking.
+[Strategy-proofness audit](notebooks/LLM_RSD_Strategyproofness_Audit.ipynb)	Replaces each target student's truthful report with simulated alternative reports. Compares strict and weak proxy RSD using profitable-deviation rates, expected-rank gains, and empirical stochastic dominance under the same sampled priority orders.
+[A-CEEI extension](notebooks/CEEI_efficiency_envy.ipynb)	Fits continuous bundle scores and compares proxy and oracle allocations using the same approximate price search. Reports true utility, Pareto efficiency, and envy.
+[MNW extension](notebooks/MNW_LLM_Proxy_Extension.ipynb)	Compares oracle MNW, strict proxy MNW, and tier-based proxy MNW. Reports true Nash welfare, Pareto gaps, and proportional-fairness gaps.
+
+
+How to run
+1. Run the [dataset construction notebook](01_construct_128_student_fixed_tolerance_dataset.ipynb) from top to bottom. It uses NumPy, pandas, and Matplotlib and produces fixed_tolerance_course_data.zip. In Colab, its last cell downloads the archive.
+2. Open an experiment notebook in Google Colab and select a GPU runtime. Start with strict RSD for the baseline, then run weak RSD with Pareto completion and the strategy-proofness audit. Run A-CEEI and MNW for the extensions.
+3. Upload fixed_tolerance_course_data.zip to the experiment notebook's working directory (typically /content in Colab). The loader uses a valid local archive first. An optional Google Drive download is available by setting COURSE_DATA_DRIVE_FILE_ID in the runtime environment to the ID of a link-accessible copy.
+4. Run the experiment notebook from top to bottom. The setup cells install additional Python packages and load Qwen/Qwen3-4B-Instruct-2507 through Hugging Face Transformers. Each notebook writes its own results and exports a ZIP with tables, figures, and metadata. For the same dataset and model, the notebooks can reuse the report-extraction checkpoint at fixed_tolerance_experiment_results/profile_extractions.jsonl.
+The dataset ZIP contains course_catalog.csv, student_reports.csv, bundle_queries_with_truth.csv, student_ground_truth.json, and generation_metadata.json, plus a student summary. The experiment loaders read the five named inputs.
+Experiment workflow and interpretation
+Qwen extracts structured profiles from the natural-language reports. The notebooks turn those profiles and course attributes into bundle features, fit a preference proxy on training students, and use that proxy to allocate courses in held-out markets. Oracle runs use the simulator's hidden preferences. Where thresholds are calibrated, selection takes place on validation markets before final test evaluation. The audit and MNW notebooks contain the locked Pareto-efficiency thresholds from the weak RSD experiment.
+
+Each student's allocation menu consists of the bundles observed in that student's pair queries plus the outside option. Pareto-efficiency results apply to those menus. The strategy-proofness audit measures deviations found under its specified report generator and sampled priority orders. A-CEEI uses approximate price search, and the MNW proportional-fairness gap is an empirical benchmark on the simulated markets.
