@@ -1,0 +1,8 @@
+.ipynb_checkpoints/
+__pycache__/
+.env
+.env.*
+fixed_tolerance_course_data.zip
+fixed_tolerance_input/
+*_results/
+*_results.zip
